@@ -4,12 +4,23 @@
 +                                       ; ↝ <primitive>
 (+ 2 4)                                 ; ↝ 6
 
+
 ((fob (x) x) 2)                         ; ↝ 2
 
 (((fob (x) (fob (y) (* x y)))
   3)
  5)                                     ; ↝ 15
 
+(let x 1 (if (= x 0) true (+ x 1)))  ; ↝ 2
+
+((fob (x) (fix ((x 8) ((func x) (+ x 5))) (func x))) 2) ; Hugo Bouchard pris de la section Question-Nouvelle sur Studium :-)
+
 (fix (((even x)  (if (= x 0) true  (odd  (- x 1))))
       ((odd x)   (if (= x 0) false (even (- x 1)))))
   (odd 42))                             ; ↝ False
+
+;(fix (((even x) 42)
+;((ooo x)  43))
+;(ooo 0))                             ; ↝ 43
+
+()                                      ; error not allowed
