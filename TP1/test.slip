@@ -11,9 +11,9 @@
   3)
  5)                                     ; ↝ 15
 
-(let x 1 (if (= x 0) true (+ x 1)))  ; ↝ 2
+(let x 1 (if (= x 0) true (+ x 1)))  ; ↝ 2 (NOTRE EXAMPLE !!!!!!!)
 
-((fob (x) (fix ((x 8) ((func x) (+ x 5))) (func x))) 2) ; Hugo Bouchard pris de la section Question-Nouvelle sur Studium :-)
+((fob (x) (fix ((x 8) ((func x) (+ x 5))) (func x))) 2) ; Hugo Bouchard pris de la section Question-Nouvelle sur Studium :-P
 
 (fix (((even x)  (if (= x 0) true  (odd  (- x 1))))
       ((odd x)   (if (= x 0) false (even (- x 1)))))
@@ -21,6 +21,6 @@
 
 ;(fix (((even x) 42)
 ;((ooo x)  43))
-;(ooo 0))                             ; ↝ 43
+;(ooo 0))                             ; ↝ 43 (NOTRE EXAMPLE !!!!!!!)
 
 ()                                      ; error not allowed

@@ -340,8 +340,8 @@ eval env (Ltest exp etrue efalse) = case eval env exp of
     Vbool False -> eval env efalse
 
 -- *** Lfix [(Var, Lexp)] Lexp
-eval env (Lfix declarations exp) = 
-    
+eval env (Lfix declarations exp) =  
+
 
 
 -- Fonction auxiliaire qui cree une paire; utilisation dans le traitement de Lsend (Lfob ...)
