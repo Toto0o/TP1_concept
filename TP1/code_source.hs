@@ -202,7 +202,6 @@ s2l (Ssym "false") = Lbool False
 -- Varibale (x)
 s2l (Ssym s) = Lvar s
 
-
 -- Cas de liste vide "()"
 s2l Snil = error "Illegal empty list"
 
@@ -210,6 +209,8 @@ s2l Snil = error "Illegal empty list"
 s2l (Snode (Ssym "if") [expression, true, false]) =
     Ltest (s2l expression) (s2l true) (s2l false)
 
+-- *** ((fob (x) x) 2) ***
+-- *** Snode (Snode (Ssym "fob") [Snode (Ssym "x") [],Ssym "x"]) [Snum 2] ***
 -- Fonction (fob (x1 ... xn) e)
 s2l (Snode (Ssym "fob") parameters) =
     let
@@ -225,21 +226,47 @@ s2l (Snode (Ssym "let") [Ssym x, e1, e2]) =
     -- s2l sur e1 et e2 pour avoir une Lexp
     Llet x (s2l e1) (s2l e2)
 
--- Opérateur binaire (+ | - | * | \ |...)
-s2l (Snode (Ssym op) [eleft, eright]) = 
-    Lsend (Lvar op) [s2l eleft, s2l eright]
 
--- Appel de fonction (e0 e1...en)
-s2l (Snode (Ssym f) args) =
-    -- s2l sur f pour avoir une lexp
-    -- map avec s2l sur args pour avoir [lexp]
-    Lsend (Lvar f) (map s2l args)
 
 -- !!! continuer ici !!!
--- Déclaration locales récursives : (fix (d1 ... dn) e)
- 
+-- Déclaration locales récursives : (fix (d1 ... dn) e) 
+
+-- *** (fix ((x 2)) (+ x 3)) ***
+-- ***ex: Snode (Ssym "fix") [Snode (Snode (Ssym "x") [Snum 2]) []   ,Snode (Ssym "+") [Ssym "x",Snum 3]]***
+-- *** Type de retour : Lfix [(Var, Lexp)] Lexp ***
+
+-- Snode (Snode (Ssym "div2") [Ssym "x"]) [Snode (Ssym "/") [Ssym "x",Snum 2]]
+s2l (Snode (Ssym "fix") [declarations, exp]) = 
+    case declarations of 
+        --Snode (Snode (Ssym x) [val]) [] -> Lfix [(x, s2l val)] (s2l exp)
+        Snode firstd restD -> Lfix (map extractPair (firstd:restD)) (s2l exp)
+        {- Snode (Snode (Ssym x) [Ssym y]) [Snode (Ssym z) body] -> Lfix ([x, ]) (s2l exp) -}
+        _ -> error "invalid"
+
+
+
+
+-- Opérateur binaire (+ | - | * | \ |...) 
+-- *** comment DOM : redondant avec le patern matching subséquent? ***
+-- [s2l eleft, s2l eright] et (map s2l args) vont faire la même chose anyway
+--s2l (Snode (Ssym op) [eleft, eright]) = 
+--    Lsend (Lvar op) [s2l eleft, s2l eright]
+
+-- Appel de fonction (e0 e1...en)
+s2l (Snode f args) =
+    -- s2l sur f pour avoir une lexp
+    -- map avec s2l sur args pour avoir [lexp]
+    Lsend (s2l f) (map s2l args)
 
 s2l se = error ("Expression Psil inconnue: " ++ showSexp se)
+
+
+-- Fonction auxiliaire permettant de traiter plusieurs déclarations dans un fix
+
+-- Snode (Snode (Ssym "div2") [Ssym "x"]) [Snode (Ssym "/") [Ssym "x",Snum 2]]
+extractPair :: Sexp -> (Var, Lexp)
+extractPair (Snode (Ssym y) [val]) = (y, s2l val)
+extractPair (Snode (Snode (Ssym var) args) [body]) = (var, Lfob [arg | (Ssym arg) <- args] (s2l body))
 ---------------------------------------------------------------------------
 -- Représentation du contexte d'exécution                                --
 ---------------------------------------------------------------------------
@@ -284,6 +311,7 @@ env0 = let binop f op =
 
 eval :: VEnv -> Lexp -> Value
 -- ¡¡ COMPLETER !!
+-- Cas de base (trivial)
 eval _ (Lnum n) = Vnum n
 
 eval _ (Lbool True) = Vbool True
@@ -292,11 +320,50 @@ eval _ (Lbool False) = Vbool False
 
 -- Evaluation d'une variable
 eval env (Lvar x) = case lookup x env of
-    Just value ->  value
-    Nothing -> error ("Variable" ++ x ++ "not defined")
+    Just value -> value
+    Nothing -> error ("Variable " ++ x ++ " not defined")
 
-eval env (Lsend f arg) = case eval env f of -- on evalue la fonction appelée
-    Vbuiltin fop -> fop (map (eval env) arg) -- si on appel une fonction primitive tel +, -, ...
+eval env (Llet x e1 e2) = eval ((x, eval env e1):env) e2
+
+-- *** (Lfob [var] Lexp)
+-- *** Retour: Vfob VEnv [Var] Lexp ***
+eval env (Lfob arg body) = Vfob env arg body
+
+-- *** Lsend (Lfob ["x"] (Lvar "x")) [Lnum 2] ***
+eval env (Lsend f arg) = 
+    case eval env f of -- on evalue la fonction appelée
+        Vbuiltin fop -> fop (map (eval env) arg) -- si on appel une fonction primitive tel +, -, ...
+        -- pas besoin de zipWith & makePair vu que zip fait deja ça
+        Vfob fenv var body ->  eval (zip var (map (eval env) arg) ++ fenv) body 
+        _ -> error "not a function"
+    
+-- *** Ltest Lexp Lexp Lexp
+eval env (Ltest body etrue efalse) = 
+    case eval env body of 
+        Vbool True -> eval env etrue
+        Vbool False -> eval env efalse
+        _ -> error "not a boolean"
+
+-- *** Lfix [(Var, Lexp)] Lexp
+-- Probleme a la recursion mutuelle -> fonction non evalué dans l'environnement dans la recursion 
+
+eval env (Lfix declarations body) =  
+    let 
+        -- pour gerer les cas de recursion mutuelle, on insere les declarations dans l'environnement commme
+        -- des fonctions anonymes, afin de :
+        --   - utiliser newEnv dans sa propre declaration
+        --   - gerer cas de declaration mutuellements recursives
+        newEnv = map (\(var, expr) -> (var, eval newEnv expr)) declarations ++ env
+    in eval newEnv body
+
+    
+
+
+
+-- Fonction auxiliaire qui cree une paire; utilisation dans le traitement de Lsend (Lfob ...)
+{- makePair:: a -> b -> (a,b)
+makePair x y = (x,y) -}
+
     -- !!! continuer ici !!!
 
 ---------------------------------------------------------------------------
