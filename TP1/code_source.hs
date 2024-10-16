@@ -313,40 +313,56 @@ eval :: VEnv -> Lexp -> Value
 -- ¡¡ COMPLETER !!
 -- Cas de base (trivial)
 eval _ (Lnum n) = Vnum n
-
 eval _ (Lbool True) = Vbool True
-
 eval _ (Lbool False) = Vbool False
 
 -- Evaluation d'une variable
-eval env (Lvar x) = case lookup x env of
+eval env (Lvar x) = case lookup x env of -- on cherche x dans l'environnement
+    -- si on le trouve, on renvoi sa valeur
     Just value -> value
+    -- sinon, x n'est pas encore defini
     Nothing -> error ("Variable " ++ x ++ " not defined")
 
+-- Definition locale
+-- On evalue l'expression e1 et on "bind" sa valeur a sa variable dans l'env
+-- On evalue ensuite e2 avec le nouvel environnemnt
 eval env (Llet x e1 e2) = eval ((x, eval env e1):env) e2
 
 -- *** (Lfob [var] Lexp)
 -- *** Retour: Vfob VEnv [Var] Lexp ***
+-- Definition d'un function object
+-- Il est défini avec son argument
 eval env (Lfob arg body) = Vfob env arg body
 
 -- *** Lsend (Lfob ["x"] (Lvar "x")) [Lnum 2] ***
+-- pas besoin de zipWith & makePair vu que zip fait deja ça
+-- Appel de fonction
 eval env (Lsend f arg) = 
     case eval env f of -- on evalue la fonction appelée
-        Vbuiltin fop -> fop (map (eval env) arg) -- si on appel une fonction primitive tel +, -, ...
-        -- pas besoin de zipWith & makePair vu que zip fait deja ça
+        -- Dans les deux cas, on evalue les arguments et 
+        -- sur ceux-ci on applique la fonction
+
+         -- si on appel une fonction primitive tel +, -, ...
+        Vbuiltin fop -> fop (map (eval env) arg)
+        -- Si on a un function object
         Vfob fenv var body ->  eval (zip var (map (eval env) arg) ++ fenv) body 
         _ -> error "not a function"
     
 -- *** Ltest Lexp Lexp Lexp
+-- Evaluation condition booleenne
 eval env (Ltest body etrue efalse) = 
-    case eval env body of 
+    case eval env body of -- on evalue l'expression
+        -- si vrai : on evalue l'expression 
         Vbool True -> eval env etrue
+        -- si faux : on evalue le else 
         Vbool False -> eval env efalse
+        -- sinon ...
         _ -> error "not a boolean"
 
 -- *** Lfix [(Var, Lexp)] Lexp
 -- Probleme a la recursion mutuelle -> fonction non evalué dans l'environnement dans la recursion 
 
+-- Declaration locales recursives
 eval env (Lfix declarations body) =  
     let 
         -- pour gerer les cas de recursion mutuelle, on insere les declarations dans l'environnement commme
