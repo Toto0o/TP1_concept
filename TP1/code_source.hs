@@ -74,8 +74,11 @@ integer = do c <- digit
 
 -- Les symboles sont constitués de caractères alphanumériques et de signes
 -- de ponctuations.
+-- Les symboles sont constitués de caractères alphanumériques et de signes
+-- de ponctuations.
 pSymchar :: Parser Char
-pSymchar    = alphaNum <|> satisfy (\c -> c `elem` "!@$%^&*_+-=:|/?<>")
+pSymchar    = alphaNum <|> satisfy (\c -> not (isAscii c)
+                                          || c `elem` "!@$%^&*_+-=:|/?<>")
 pSymbol :: Parser Sexp
 pSymbol= do { s <- many1 (pSymchar);
               return (case parse integer "" s of
@@ -239,6 +242,7 @@ s2l (Snode (Ssym "let") [Ssym x, e1, e2]) =
 s2l (Snode (Ssym "fix") [declarations, exp]) = 
     case declarations of 
         --Snode (Snode (Ssym x) [val]) [] -> Lfix [(x, s2l val)] (s2l exp)
+        -- pour le rapport ci-haut (firstD)
         Snode firstd restD -> Lfix (map extractPair (firstd:restD)) (s2l exp)
         {- Snode (Snode (Ssym x) [Ssym y]) [Snode (Ssym z) body] -> Lfix ([x, ]) (s2l exp) -}
         _ -> error "invalid"
@@ -253,6 +257,7 @@ s2l (Snode (Ssym "fix") [declarations, exp]) =
 --    Lsend (Lvar op) [s2l eleft, s2l eright]
 
 -- Appel de fonction (e0 e1...en)
+-- Pour le rapport : catch les patterns des autres cas car tres generique
 s2l (Snode f args) =
     -- s2l sur f pour avoir une lexp
     -- map avec s2l sur args pour avoir [lexp]
@@ -372,8 +377,18 @@ eval env (Lfix declarations body) =
         newEnv = map (\(var, expr) -> (var, eval newEnv expr)) declarations ++ env
     in eval newEnv body
 
-    
+-- POur le rapport
+--au debut : -> variable even not found
+-- var = map fst declarations
+-- value = map (eval env . snd) declarations
+-- newEnv = zip var value ++ env
 
+-- ensuite : inifnite loop
+-- var = map fst declarations
+-- value = map (eval newEnv . snd) declarations
+-- newENv - zip var value ++ env
+
+-- a la fin, dans le code :))
 
 
 -- Fonction auxiliaire qui cree une paire; utilisation dans le traitement de Lsend (Lfob ...)

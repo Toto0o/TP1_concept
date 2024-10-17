@@ -1,0 +1,26 @@
+;;; Nos examples                  -*- mode: lisp-data; coding: utf-8 -*-
+
+(let x 1 (if (= x 0) true (+ x 1)))  ; ↝ 2 (NOTRE EXAMPLE !!!!!!!)
+
+
+;Fonction calculant le n terme de la suite de Fibonnacci (F0 = 0, F1 = 1, ...)
+
+(fix (
+        (
+            (fibn n) 
+                (if (≤ n 1) n (+ 
+                    (fibn (- n 1)) (fibn (- n 2))
+                    )
+                )
+        )
+    ) (fibn 6)) ; 8
+
+
+
+
+
+
+;(fix (((even x) 42)
+;((ooo x)  43))
+;(ooo 0))                             ; ↝ 43 (NOTRE EXAMPLE !!!!!!!)
+
