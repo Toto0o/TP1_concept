@@ -1,10 +1,57 @@
-;;; Nos examples                  -*- mode: lisp-data; coding: utf-8 -*-
 
-(let x 1 (if (= x 0) true (+ x 1)))  ; ↝ 2 (NOTRE EXAMPLE !!!!!!!)
+;;; Ce fichier contient plusieurs test pour vérifier la bonne évaluation
+;;; des expressions dans l'implantation du langage Lisp. Les tests couvrent
+;;; des cas simples comme l'évaluation de variables, des expressions  
+;;; conditionnelles et des appels de fonctions récursives.
+
+;_____________________________________________________________________________
+; D'abord, quelques exemples du prof
+
+2                                       ; ↝ 2
++                                       ; ↝ <primitive>
+(+ 2 4)                                 ; ↝ 6
+
+((fob (x) x) 2)                         ; ↝ 2
+
+(((fob (x) (fob (y) (* x y))) 3) 5)     ; ↝ 15
+
+(fix (((even x)  (if (= x 0) true  (odd  (- x 1))))
+      ((odd x)   (if (= x 0) false (even (- x 1)))))
+  (odd 42))                             ; ↝ False
+;_____________________________________________________________________________
+
+; Tests permettant de vérififer l'évaluation des éléments suivant:
+; - bool, var et int                    -> eval de Lbool, Lvar, Lnum
+; - (Let x e1 e2)                       -> eval de Llet
+; - (if e ethen eelse)                  -> eval de Ltest
+; - (e1, e1, e2) appel de fonction      -> eval de Lsend sur op
+true                                    ; ↝ True
+(let noteTP 100 noteTP)                 ; ↝ 100
+(if true 101 100)                       ; ↝ 101
+(let noteTP 100 
+    (if (= noteTP 100) 
+        (+ noteTP 1) false))           ; ↝ 101
 
 
-;Fonction calculant le n terme de la suite de Fibonnacci (F0 = 0, F1 = 1, ...)
+; Fonction permettant d'additionner 3 variables. Les variables sont déclarées et 
+; la fonction est appelée avec ces variables en arguments. Permet de tester: 
+; fix à déclarations multiples et un appel de fonction à plus de deux arguments
+; - (fix (d1 ... dn) e)                 -> eval de Lfix
+; - (fob (x1 ... xn) e)                 -> eval de Lfob
+; - ((x x1 ... xn) e) ⇐⇒ (x (fob (x1 ... xn) e)) ->
+;   ce qui permet également de tester que notre fonction s2l a “éliminé” le
+;   sucre syntaxique
+(fix ((x 2) (y 2) (z 1) ((add x y z) (+ (+ x y) z))) (add x y z)) ; ↝ 5
 
+
+; Fonction calculant le n terme de la suite de Fibonnacci (F0 = 0, F1 = 1, ...)
+; permet de tester principalement l'utilisation de `fix` pour déclarer et
+; évaluer une fonction récursive. Elle évalue les éléments suivant: 
+; -  (fix (d1 ... dn) e)               -> eval de Lfix
+; -  (fob (x1 ... xn) e)               -> eval de Lfob
+; - ((x x1 ... xn) e) ⇐⇒ (x (fob (x1 ... xn) e)) ->
+;   ce qui permet également de tester que notre fonction s2l a “éliminé” le
+;   sucre syntaxique
 (fix (
         (
             (fibn n) 
@@ -13,14 +60,24 @@
                     )
                 )
         )
-    ) (fibn 6)) ; 8
+    ) (fibn 6))                         ; ↝ 8
 
 
+; Test permettant d'évaluer la portée des fonctions
+; Crédit: Hugo Bouchard pris de la section Question-Nouvelle sur Studium :-P
+; shutout to Hugo! good job! 
+((fob (x) 
+    (fix ((x 8) ((func x) (+ x 5))) (func x)))
+    2)                                  ; ↝ 13
 
 
+; Test spécial commenté! (à décommenter pour tester)
+; fix imbriqué pour tester si la portée est bel et bien dynamique
+;(fix ( (fct (fob () x)) )
+;    (fix ((x 42))
+;        (fct)
+;    )
+;)                                       ; ↝ Exception: Variable x not defined
 
-
-;(fix (((even x) 42)
-;((ooo x)  43))
-;(ooo 0))                             ; ↝ 43 (NOTRE EXAMPLE !!!!!!!)
-
+; Test spécial commenté! (à décommenter pour tester)
+;()                                      ; error not allowed
