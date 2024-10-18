@@ -29,8 +29,9 @@ true                                    ; ↝ True
 (let noteTP 100 noteTP)                 ; ↝ 100
 (if true 101 100)                       ; ↝ 101
 (let noteTP 100 
-    (if (= noteTP 100) 
-        (+ noteTP 10) false))            ; ↝ 101
+  (if (= noteTP 100) 
+    (+ noteTP 10) 
+    false))                             ; ↝ 101
 
 
 ; Fonction permettant d'additionner 5 variables. Les variables sont déclarées et 
@@ -41,9 +42,13 @@ true                                    ; ↝ True
 ; - ((x x1 ... xn) e) ⇐⇒ (x (fob (x1 ... xn) e)) ->
 ;   ce qui permet également de tester que notre fonction s2l a “éliminé” le
 ;   sucre syntaxique
-(fix ((s2l 30) (rapport 25) (tests 15) (eval 30) (bonus 10)
-    ((add w x y z yes) (+ (+ (+ (+ w x) y) z) yes))) 
-        (add s2l rapport tests eval bonus)) ; ↝ 110
+(fix ((s2l 30) 
+      (rapport 25) 
+      (tests 15) 
+      (eval 30) 
+      (bonus 10)
+      ((add w x y z yes) (+ (+ (+ (+ w x) y) z) yes)))
+  (add s2l rapport tests eval bonus))   ; ↝ 110
 
 
 ; Fonction calculant le n terme de la suite de Fibonnacci (F0 = 0, F1 = 1, ...)
@@ -54,23 +59,21 @@ true                                    ; ↝ True
 ; - ((x x1 ... xn) e) ⇐⇒ (x (fob (x1 ... xn) e)) ->
 ;   ce qui permet également de tester que notre fonction s2l a “éliminé” le
 ;   sucre syntaxique
-(fix (
-        (
-            (fibn n) 
-                (if (≤ n 1) n (+ 
-                    (fibn (- n 1)) (fibn (- n 2))
-                    )
-                )
-        )
-    ) (fibn 6))                         ; ↝ 8
+(fix (((fibn n) 
+         (if (≤ n 1) 
+           n
+           (+ (fibn (- n 1)) (fibn (- n 2)))))) 
+  (fibn 6))                             ; ↝ 8
 
 
 ; Test permettant d'évaluer la portée des fonctions
 ; Crédit: inspiré de l'exemple de Hugo Bouchard pris de la section 
 ; Question-Nouvelle sur Studium :-P shutout to Hugo! good job! 
 ((fob (heure) 
-    (fix ((heure 400) ((bonneRelache heure) (+ heure 20))) (bonneRelache heure)))
-    2000)                               ; ↝ 420
+  (fix ((heure 400) 
+        ((bonneRelache heure) (+ heure 20))) 
+    (bonneRelache heure)))
+ 2000)                               ; ↝ 420
 
 
 ; Test spécial commenté! (à décommenter pour tester)
