@@ -230,7 +230,8 @@ s2l (Snode (Ssym "let") [Ssym x, e1, e2]) =
 -- Déclaration locales récursives : (fix (d1 ... dn) e) 
 s2l (Snode (Ssym "fix") [declarations, expr]) = 
     case declarations of 
-        -- On combine la première déclarations aux autres déclarations en une seule liste
+        -- On combine la première déclarations 
+        -- aux autres déclarations en une seule liste
         Snode firstd restD -> Lfix (map extractPair (firstd:restD)) (s2l expr)
         _ -> error "invalid"
 
@@ -246,7 +247,8 @@ s2l se = error ("Expression Psil inconnue: " ++ showSexp se)
 -- Fonction auxiliaire permettant de traiter plusieurs déclarations dans un fix
 extractPair :: Sexp -> (Var, Lexp)
 extractPair (Snode (Ssym y) [val]) = (y, s2l val)
-extractPair (Snode (Snode (Ssym var) args) [body]) = (var, Lfob [arg | (Ssym arg) <- args] (s2l body))
+extractPair (Snode (Snode (Ssym var) args) [body]) = 
+          (var, Lfob [arg | (Ssym arg) <- args] (s2l body))
 ---------------------------------------------------------------------------
 -- Représentation du contexte d'exécution                                --
 ---------------------------------------------------------------------------
@@ -337,7 +339,8 @@ eval env (Ltest body etrue efalse) =
 -- Declaration locales recursives
 eval env (Lfix declarations body) =  
     let 
-        -- pour gerer les cas de recursion mutuelle, on insere les declarations dans l'environnement commme
+        -- pour gerer les cas de recursion mutuelle, 
+        -- on insere les declarations dans l'environnement commme
         -- des fonctions anonymes, afin de :
         --   - utiliser newEnv dans sa propre declaration
         --   - gerer cas de declaration mutuellements recursives
