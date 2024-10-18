@@ -1,8 +1,6 @@
 
-;;; Ce fichier contient plusieurs test pour vérifier la bonne évaluation
-;;; des expressions dans l'implantation du langage Lisp. Les tests couvrent
-;;; des cas simples comme l'évaluation de variables, des expressions  
-;;; conditionnelles et des appels de fonctions récursives.
+;;; Ce fichier contient plusieurs tests pour vérifier la bonne évaluation
+;;; des expressions dans l'implantation du langage Slip.
 
 ;_____________________________________________________________________________
 ; D'abord, quelques exemples du prof
