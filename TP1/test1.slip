@@ -30,7 +30,7 @@ true                                    ; ↝ True
 (if true 101 100)                       ; ↝ 101
 (let noteTP 100 
     (if (= noteTP 100) 
-        (+ noteTP 1) false))           ; ↝ 101
+        (+ noteTP 1) false))            ; ↝ 101
 
 
 ; Fonction permettant d'additionner 3 variables. Les variables sont déclarées et 
@@ -64,20 +64,21 @@ true                                    ; ↝ True
 
 
 ; Test permettant d'évaluer la portée des fonctions
-; Crédit: Hugo Bouchard pris de la section Question-Nouvelle sur Studium :-P
-; shutout to Hugo! good job! 
+; Crédit: inspiré de l'exemple de Hugo Bouchard pris de la section 
+; Question-Nouvelle sur Studium :-P shutout to Hugo! good job! 
 ((fob (x) 
-    (fix ((x 8) ((func x) (+ x 5))) (func x)))
+    (fix ((x 1000) ((bonneRelache x) (+ x 10))) (bonneRelache x)))
     2)                                  ; ↝ 13
 
 
 ; Test spécial commenté! (à décommenter pour tester)
-; fix imbriqué pour tester si la portée est bel et bien dynamique
+; fix imbriqué pour tester si la portée est bel et bien dynamique,
 ;(fix ( (fct (fob () x)) )
 ;    (fix ((x 42))
 ;        (fct)
 ;    )
 ;)                                       ; ↝ Exception: Variable x not defined
+
 
 ; Test spécial commenté! (à décommenter pour tester)
 ;()                                      ; error not allowed
